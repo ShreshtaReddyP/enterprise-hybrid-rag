@@ -78,8 +78,10 @@ def parse_and_chunk_file(
             from pypdf import PdfReader
             reader = PdfReader(str(file_path))
             total_pages = len(reader.pages)
+            pages_to_process = min(total_pages, 60)  # Safeguard against 500+ page out-of-memory crashes on free cloud tiers
 
-            for page_idx, page in enumerate(reader.pages):
+            for page_idx in range(pages_to_process):
+                page = reader.pages[page_idx]
                 page_number = page_idx + 1
                 raw_text = page.extract_text() or ""
                 cleaned = clean_text(raw_text)

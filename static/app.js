@@ -148,6 +148,12 @@ async function handleSearch() {
 }
 
 function renderResponse(data) {
+  // Update model badge
+  const modelBadge = document.getElementById("modelBadge");
+  if (modelBadge && data.model_used) {
+    modelBadge.textContent = data.model_used;
+  }
+
   // 1. Render Grounded Answer
   answerContent.innerHTML = formatMarkdown(data.answer);
 

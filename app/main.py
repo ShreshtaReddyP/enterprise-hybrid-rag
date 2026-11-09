@@ -37,7 +37,7 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 load_dotenv(override=True)
 api_key = os.getenv("GEMINI_API_KEY", "").strip()
-model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-004")
 
 app = FastAPI(
