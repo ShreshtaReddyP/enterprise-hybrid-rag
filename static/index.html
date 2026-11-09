@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocuVault | Enterprise Hybrid RAG with Provenance & Evaluation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <div class="nav-logo">🏛️</div>
+      <div>
+        <h1>DocuVault <span>Enterprise RAG</span></h1>
+        <p>Hybrid Search (BM25 + Gemini Dense Vector) • Reciprocal Rank Fusion • Ragas Evaluation</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <span class="badge live-badge">🟢 Hybrid RRF Active</span>
+      <button class="benchmark-btn" id="benchmarkBtn" onclick="runBenchmark()">
+        <span>⚡ Run 3-Query Benchmark</span>
+      </button>
+      <a href="/docs" target="_blank" class="docs-btn">Swagger API</a>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Layout -->
+  <div class="dashboard-layout">
+    
+    <!-- Left Column: Document Vault & Upload -->
+    <aside class="vault-panel">
+      <div class="panel-header">
+        <h3>📂 Document Vault</h3>
+        <span class="chunk-counter" id="totalChunksBadge">Loading...</span>
+      </div>
+
+      <!-- Drag & Drop Upload Zone -->
+      <div class="upload-dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".pdf,.txt,.md" style="display: none;">
+        <div class="dropzone-icon">📄</div>
+        <p><strong>Click to upload PDF or TXT</strong></p>
+        <span>Supports multi-page 10-K filings, manuals, contracts</span>
+      </div>
+
+      <!-- Indexed Documents List -->
+      <div class="doc-list-section">
+        <h4>Indexed Knowledge Bases</h4>
+        <div class="doc-list" id="docList">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Sample Test Prompts -->
+      <div class="sample-prompts-section">
+        <h4>💡 Test Enterprise Prompts</h4>
+        <div class="prompt-chips-list">
+          <button class="prompt-chip" onclick="setQuery('What was the total consolidated revenue in fiscal year 2025 and operating margin?')">
+            📈 2025 Revenue & Margins
+          </button>
+          <button class="prompt-chip" onclick="setQuery('What are the specific supply chain risks regarding HBM3e memory?')">
+            ⚠️ HBM3e Supply Chain Risks
+          </button>
+          <button class="prompt-chip" onclick="setQuery('Describe the Hyperion-2 inference chip and its energy efficiency results.')">
+            ⚡ Hyperion-2 Silicon Chip
+          </button>
+          <button class="prompt-chip" onclick="setQuery('What is the share repurchase program authorized by the Board?')">
+            💰 $500M Share Repurchase
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Column: Query Console & Grounded Answer -->
+    <main class="console-panel">
+      <!-- Search Bar Form -->
+      <form id="queryForm" class="query-box">
+        <div class="query-input-wrap">
+          <input 
+            type="text" 
+            id="queryInput" 
+            placeholder="Ask a question about the indexed financial reports or uploaded documents..." 
+            required 
+            autocomplete="off"
+          />
+          <button type="submit" id="submitBtn" class="search-btn">
+            <span>Analyze</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="query-options">
+          <label>Top-K Chunks:
+            <select id="topKSelect">
+              <option value="3">3 Chunks</option>
+              <option value="4" selected>4 Chunks (Recommended)</option>
+              <option value="6">6 Chunks</option>
+            </select>
+          </label>
+          <span class="pipeline-tag">Search Pipeline: Dense (Embeddings) + Sparse (BM25Okapi) ➔ RRF Re-ranking</span>
+        </div>
+      </form>
+
+      <!-- Answer Card -->
+      <div class="answer-card" id="answerCard">
+        <div class="card-header">
+          <h3>Grounded Intelligence Output</h3>
+          <span class="model-badge" id="modelBadge">gemini-2.5-flash</span>
+        </div>
+
+        <div class="answer-content" id="answerContent">
+          <p class="placeholder-text">
+            👋 Welcome to <strong>DocuVault Enterprise Hybrid RAG</strong>.<br><br>
+            The system is pre-loaded with <em>Novus AI Technologies 2025 Form 10-K Annual Report (5 pages)</em>. 
+            Type a question above or click one of the sample prompt chips on the left to see <strong>Reciprocal Rank Fusion (RRF)</strong> retrieval and <strong>automated evaluation scores</strong> in action!
+          </p>
+        </div>
+
+        <!-- Verified Citations Row -->
+        <div class="citations-section" id="citationsSection" style="display: none;">
+          <h4>Verified Source Citations (Click to inspect provenance chunk):</h4>
+          <div class="citations-pills" id="citationsPills"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Column: Real-time Evaluation & Provenance Inspector -->
+    <aside class="inspector-panel">
+      <div class="panel-header">
+        <h3>📊 Evaluation & Provenance</h3>
+        <span class="audit-badge" id="auditBadge">Ragas Standard</span>
+      </div>
+
+      <!-- Evaluation Metrics Grid -->
+      <div class="metrics-grid" id="metricsGrid">
+        <div class="metric-card">
+          <div class="metric-label">Faithfulness Score</div>
+          <div class="metric-value" id="faithfulnessVal">--%</div>
+          <div class="metric-desc">Zero-hallucination verification against source</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Answer Relevance</div>
+          <div class="metric-value" id="relevanceVal">--%</div>
+          <div class="metric-desc">Direct semantic alignment to query</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Context Precision</div>
+          <div class="metric-value" id="precisionVal">--%</div>
+          <div class="metric-desc">Normalized RRF ranking quality</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Total Latency</div>
+          <div class="metric-value" id="latencyVal">-- ms</div>
+          <div class="metric-desc" id="latencyDetail">Retrieval + RRF + LLM</div>
+        </div>
+      </div>
+
+      <!-- Retrieved Chunks Provenance Inspector -->
+      <div class="chunks-inspector-section">
+        <h4>Top-K Re-ranked Context Chunks</h4>
+        <div class="chunks-list" id="chunksList">
+          <p class="placeholder-text">Execute a search to view retrieved provenance chunks, dense scores, and BM25 scores.</p>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Benchmark Modal -->
+  <div class="modal-backdrop" id="benchmarkModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>⚡ Enterprise RAG Benchmark Results</h3>
+        <button class="modal-close" onclick="closeBenchmark()">✕</button>
+      </div>
+      <div class="modal-body" id="benchmarkBody">
+        <div class="loading-spinner">Running 3 audit query benchmarks...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

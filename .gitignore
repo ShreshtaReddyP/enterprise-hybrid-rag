@@ -1,0 +1,23 @@
+# Secrets & Environment Variables (NEVER PUSH)
+.env
+*.env
+
+# Python Virtual Environments
+venv/
+env/
+.venv/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary uploads (preserve sample_data)
+uploads/*
+!uploads/.gitkeep
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
